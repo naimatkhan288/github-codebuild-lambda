@@ -1,0 +1,19 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo Installing Node.js dependencies
+      - npm install
+  build:
+    commands:
+      - echo Build step
+      - zip -r lambda.zip index.js node_modules/
+  post_build:
+    commands:
+      - echo Build completed successfully
+artifacts:
+  files:
+    - lambda.zip
+  discard-paths: yes
+  base-directory: ./
