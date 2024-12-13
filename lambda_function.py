@@ -9,7 +9,8 @@ def lambda_handler(event, context):
     # more dummy comments to test end to end
     # testing update in CI/CD
     # Added new content - November 8, 2024
-    # # Added new content - December 13, 2024
+    # Added new content - December 13, 2024
+    # Added new content - December 13, 2025
 
     print(event)
     URL = "http://maps.googleapis.com/maps/api/geocode/json"
