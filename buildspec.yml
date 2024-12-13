@@ -1,21 +1,34 @@
 version: 0.2
+
 phases:
   install:
     runtime-versions:
-      python: 3.7
+      docker: 19
+    commands:
+      - echo Installing dependencies...
+      - apt-get update -y && apt-get install -y unzip
+
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+      - echo Checking if ECR repository exists...
+      - aws ecr describe-repositories --repository-names $IMAGE_REPO_NAME || aws ecr create-repository --repository-name $IMAGE_REPO_NAME
+
   build:
     commands:
-      - echo Build started on `date`
-      - echo Compiling the Python code...
-      - pip install requests -t .
-      - zip -r deployment-package.zip . # Command to zip the code
+      - echo Building the Docker image...
+      - docker build -t $IMAGE_REPO_NAME .
+      - echo Tagging the Docker image...
+      - docker tag $IMAGE_REPO_NAME:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
+
   post_build:
     commands:
-      - echo Build completed on `date`
-      - pwd
-      - ls -al
-      - aws lambda update-function-code --function-name DemoCodedeploy-11-08-2024 --zip-file fileb://deployment-package.zip # Command to update the Lambda function
-      - aws s3 cp deployment-package.zip s3://demo-bucket-codebuild-lambda-1/ # Command to upload the zip file to S3 bucket
+      - echo Pushing the Docker image to ECR...
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
+      - echo Updating the Lambda function with the new image...
+      - aws lambda update-function-code --function-name $LAMBDA_FUNCTION_NAME --image-uri $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
+
 artifacts:
   files:
     - '**/*'

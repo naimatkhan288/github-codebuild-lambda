@@ -1,0 +1,21 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      python: 3.7
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Compiling the Python code...
+      - pip install requests -t .
+      - zip -r deployment-package.zip . # Command to zip the code
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - pwd
+      - ls -al
+      - aws lambda update-function-code --function-name DemoCodedeploy-11-08-2024 --zip-file fileb://deployment-package.zip # Command to update the Lambda function
+      - aws s3 cp deployment-package.zip s3://demo-bucket-codebuild-lambda-1/ # Command to upload the zip file to S3 bucket
+artifacts:
+  files:
+    - '**/*'
