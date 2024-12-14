@@ -24,9 +24,14 @@ phases:
     commands:
       - echo Pushing the Docker image to ECR...
       - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
+      - echo Verifying the pushed Docker image in ECR...
+      - aws ecr describe-images --repository-name $IMAGE_REPO_NAME --region $AWS_REGION
       - echo Updating the Lambda function with the new image...
-      #- aws lambda update-function-code --function-name $LAMBDA_FUNCTION_NAME --image-uri $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
-      - aws lambda update-function-code --function-name $LAMBDA_FUNCTION_NAME --image-uri $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest --debug
+      - |
+        aws lambda update-function-code \
+          --function-name $LAMBDA_FUNCTION_NAME \
+          --image-uri $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest --debug
+      - echo Lambda function update complete.
 
 artifacts:
   files:
